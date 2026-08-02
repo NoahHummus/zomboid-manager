@@ -23,6 +23,7 @@ var rootCmd = &cobra.Command{
 			ServiceName:    viper.GetString("service-name"),
 			AllowedUserIDs: splitAndTrim(viper.GetString("allowed-user-ids")),
 			JournalctlSudo: viper.GetBool("journalctl-sudo"),
+			IPv4Only:       viper.GetBool("ipv4-only"),
 		}
 
 		if cfg.Token == "" {
@@ -54,12 +55,14 @@ func init() {
 	rootCmd.Flags().String("service-name", "pzserver", "systemd service name for the Zomboid server")
 	rootCmd.Flags().String("allowed-user-ids", "", "comma-separated Discord user IDs allowed to run commands")
 	rootCmd.Flags().Bool("journalctl-sudo", false, "run journalctl with sudo (requires a sudoers entry); prefer adding the bot's user to the systemd-journal group instead")
+	rootCmd.Flags().Bool("ipv4-only", true, "connect to Discord over IPv4 only; avoids multi-second stalls on hosts with a broken/black-holed IPv6 route")
 
 	viper.BindPFlag("token", rootCmd.Flags().Lookup("token"))
 	viper.BindPFlag("guild-id", rootCmd.Flags().Lookup("guild-id"))
 	viper.BindPFlag("service-name", rootCmd.Flags().Lookup("service-name"))
 	viper.BindPFlag("allowed-user-ids", rootCmd.Flags().Lookup("allowed-user-ids"))
 	viper.BindPFlag("journalctl-sudo", rootCmd.Flags().Lookup("journalctl-sudo"))
+	viper.BindPFlag("ipv4-only", rootCmd.Flags().Lookup("ipv4-only"))
 }
 
 func initConfig() {

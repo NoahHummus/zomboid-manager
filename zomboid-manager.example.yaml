@@ -7,3 +7,4 @@ guild-id: "" # optional; register commands to a single guild for instant availab
 service-name: pzserver
 allowed-user-ids: "" # comma-separated Discord user IDs
 journalctl-sudo: false
+ipv4-only: true # connect to Discord over IPv4 only; avoids stalls on hosts with broken IPv6

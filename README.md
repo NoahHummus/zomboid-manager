@@ -24,6 +24,7 @@ that order of precedence. See [zomboid-manager.example.yaml](zomboid-manager.exa
 | `--service-name`      | `ZM_SERVICE_NAME`      | `pzserver` | systemd unit name                                       |
 | `--allowed-user-ids`  | `ZM_ALLOWED_USER_IDS`  | *(none)*   | Comma-separated Discord user IDs allowed to run commands (required) |
 | `--journalctl-sudo`   | `ZM_JOURNALCTL_SUDO`   | `false`    | Run `journalctl` via `sudo` (see below)                 |
+| `--ipv4-only`         | `ZM_IPV4_ONLY`         | `true`     | Connect to Discord over IPv4 only (see below)            |
 | `--config`            | —                      | *(none)*   | Explicit path to a config file                          |
 
 ## Build & run
@@ -32,6 +33,17 @@ that order of precedence. See [zomboid-manager.example.yaml](zomboid-manager.exa
 go build -o zomboid-manager .
 ./zomboid-manager --token "$DISCORD_TOKEN" --allowed-user-ids "111111111111111111,222222222222222222"
 ```
+
+## IPv6
+
+The bot dials Discord over IPv4 only by default (`--ipv4-only`, default
+`true`). Some hosts have an IPv6 route that's routed but black-holed rather
+than absent — a dual-stack dial then hangs for the full connect timeout on
+IPv6 before falling back to IPv4, which is long enough to blow past
+Discord's ~3s interaction acknowledgment window and cause intermittent
+"Unknown interaction" errors. Since Discord doesn't need IPv6 for anything
+the bot does, this has no downside even on hosts with healthy IPv6; set
+`--ipv4-only=false` only if you have a specific reason to prefer dual-stack.
 
 ## Host setup
 

@@ -3,13 +3,18 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/gorilla/websocket"
 )
 
 // Config holds everything the bot needs to run.
@@ -19,6 +24,7 @@ type Config struct {
 	ServiceName    string
 	AllowedUserIDs []string
 	JournalctlSudo bool
+	IPv4Only       bool
 }
 
 var commands = []*discordgo.ApplicationCommand{
@@ -48,6 +54,10 @@ func Run(cfg Config) error {
 		return fmt.Errorf("create session: %w", err)
 	}
 
+	if cfg.IPv4Only {
+		forceIPv4(sess)
+	}
+
 	sess.AddHandler(h.onInteraction)
 
 	if err := sess.Open(); err != nil {
@@ -71,6 +81,25 @@ func Run(cfg Config) error {
 	}
 
 	return nil
+}
+
+// forceIPv4 dials Discord over tcp4 only, for both the REST client and the
+// gateway websocket. Some hosts have an IPv6 route that's routed but
+// black-holed rather than absent, so a dual-stack dial hangs for the full
+// connect timeout on IPv6 before falling back to IPv4 — long enough to blow
+// past Discord's ~3s interaction ack window. Discord doesn't need IPv6 for
+// anything the bot does, so this has no downside even on healthy hosts.
+func forceIPv4(s *discordgo.Session) {
+	dialer := &net.Dialer{Timeout: 15 * time.Second}
+	dial4 := func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return dialer.DialContext(ctx, "tcp4", addr)
+	}
+
+	s.Client.Transport = &http.Transport{DialContext: dial4}
+
+	wsDialer := *websocket.DefaultDialer
+	wsDialer.NetDialContext = dial4
+	s.Dialer = &wsDialer
 }
 
 func registerCommands(s *discordgo.Session, guildID string) ([]*discordgo.ApplicationCommand, error) {

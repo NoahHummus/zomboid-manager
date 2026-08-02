@@ -1,0 +1,9 @@
+# Copy to zomboid-manager.yaml and fill in real values, or set the
+# equivalent ZM_* environment variables / CLI flags instead.
+# Precedence: CLI flags > environment variables > this file > defaults.
+
+token: "" # Discord bot token
+guild-id: "" # optional; register commands to a single guild for instant availability
+service-name: pzserver
+allowed-user-ids: "" # comma-separated Discord user IDs
+journalctl-sudo: false
